@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { Shield, Mail, Phone, Lock, UserPlus } from 'lucide-react';
 
 export default function AdminRegisterPage() {
   const [nome, setNome] = useState('');
@@ -34,88 +34,93 @@ export default function AdminRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-deep to-teal p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm bg-white/10 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-white/20"
-      >
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent to-orange-400 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
-            <span className="text-deep font-bold text-xl">LPN</span>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="card w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
+            <span className="text-white font-bold text-2xl">LPN</span>
           </div>
-          <h1 className="text-2xl font-bold text-ice">Criar Conta de Administrador</h1>
-          <p className="text-ice/80 text-sm mt-1">Aceda aos painéis de gestão</p>
+          <h1 className="text-2xl font-bold text-gray-800">Criar Conta de Administrador</h1>
+          <p className="text-gray-500 mt-1">Aceda aos painéis de gestão</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-ice mb-1">Nome completo</label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              className="w-full p-2 text-sm bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+            <div className="relative">
+              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className="input w-full pl-10"
+                required
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ice mb-1">E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 text-sm bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input w-full pl-10"
+                required
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ice mb-1">Telefone (+244...)</label>
-            <input
-              type="tel"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-              className="w-full p-2 text-sm bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Telefone (+244...)</label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="tel"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className="input w-full pl-10"
+                required
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ice mb-1">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 text-sm bg-white/20 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input w-full pl-10"
+                required
+              />
+            </div>
           </div>
-          {error && <p className="text-red-300 text-xs text-center">{error}</p>}
+          {error && <p className="text-danger text-sm text-center">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full p-2 text-sm bg-accent text-deep rounded-lg font-bold hover:bg-orange-500 transition disabled:opacity-50 shadow-md"
+            className="btn-primary w-full flex items-center justify-center gap-2"
           >
-            {loading ? 'A processar...' : 'Registar Administrador'}
+            <UserPlus size={18} /> {loading ? 'A processar...' : 'Registar Administrador'}
           </button>
         </form>
 
-        <div className="mt-5 pt-4 border-t border-white/20 text-center">
-          <p className="text-ice/80 text-sm">
+        <div className="mt-6 pt-4 border-t border-gray-200 text-center">
+          <p className="text-gray-600">
             Já tem conta?{' '}
-            <Link href="/login" className="text-accent hover:underline font-medium">
+            <Link href="/login" className="text-primary hover:underline">
               Entrar
             </Link>
           </p>
-          <div className="mt-2">
-            <Link
-              href="/"
-              className="text-xs text-ice/60 hover:text-accent transition"
-            >
+          <div className="mt-3">
+            <Link href="/" className="text-sm text-gray-500 hover:text-primary">
               ← Voltar para a página inicial
             </Link>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

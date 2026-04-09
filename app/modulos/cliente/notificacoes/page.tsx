@@ -11,14 +11,14 @@ interface Notificacao {
   criado_em: string;
 }
 
-export default function AdminNotificacoesPage() {
+export default function ClienteNotificacoesPage() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchNotificacoes = async () => {
     try {
-      const res = await fetch('/api/admin/notificacoes');
+      const res = await fetch('/api/cliente/notificacoes');
       if (!res.ok) throw new Error('Erro ao carregar notificações');
       const data = await res.json();
       setNotificacoes(data.notificacoes || []);
@@ -30,29 +30,18 @@ export default function AdminNotificacoesPage() {
     }
   };
 
-  useEffect(() => {
-    fetchNotificacoes();
-  }, []);
+  useEffect(() => { fetchNotificacoes(); }, []);
 
   const marcarLida = async (id: number) => {
     try {
-      await fetch(`/api/admin/notificacoes/${id}`, { method: 'PATCH' });
+      await fetch(`/api/cliente/notificacoes/${id}`, { method: 'PATCH' });
       setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n));
-    } catch (error) {
-      console.error(error);
-    }
+    } catch (error) { console.error(error); }
   };
 
   const marcarTodasLidas = async () => {
     const naoLidas = notificacoes.filter(n => !n.lida);
-    for (const n of naoLidas) {
-      await marcarLida(n.id);
-    }
-  };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchNotificacoes();
+    for (const n of naoLidas) await marcarLida(n.id);
   };
 
   if (loading) return <div className="flex justify-center items-center h-64"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
@@ -63,7 +52,7 @@ export default function AdminNotificacoesPage() {
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Bell size={24} /> Notificações</h1>
         <div className="flex gap-2">
           <button onClick={marcarTodasLidas} className="btn-outline text-sm">Marcar todas como lidas</button>
-          <button onClick={handleRefresh} className="btn-outline flex items-center gap-1"><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar</button>
+          <button onClick={() => { setRefreshing(true); fetchNotificacoes(); }} className="btn-outline flex items-center gap-1"><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar</button>
         </div>
       </div>
       <div className="space-y-3">
@@ -75,15 +64,9 @@ export default function AdminNotificacoesPage() {
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
                   <p className="text-gray-800">{n.conteudo}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {format(new Date(n.criado_em), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}
-                  </p>
+                  <p className="text-xs text-gray-400 mt-1">{format(new Date(n.criado_em), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}</p>
                 </div>
-                {!n.lida && (
-                  <button onClick={() => marcarLida(n.id)} className="text-primary hover:text-primary-hover transition" title="Marcar como lida">
-                    <CheckCircle size={20} />
-                  </button>
-                )}
+                {!n.lida && <button onClick={() => marcarLida(n.id)} className="text-primary hover:text-primary-hover"><CheckCircle size={20} /></button>}
               </div>
             </div>
           ))

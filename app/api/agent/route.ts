@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { processarMensagem } from '@/lib/agent';
+export const maxDuration = 120; 
+
 
 export async function POST(req: NextRequest) {
   // 1. Autenticação

@@ -1,6 +1,7 @@
- 'use client';
+'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ClipboardList, CheckCircle, Clock, AlertCircle, MessageSquare, RefreshCw } from 'lucide-react';
 
 interface Ordem {
   id: number;
@@ -13,54 +14,91 @@ interface Ordem {
 export default function ClienteDashboard() {
   const [ordens, setOrdens] = useState<Ordem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchOrdens = async () => {
+    try {
+      const res = await fetch('/api/ordens/cliente');
+      if (!res.ok) throw new Error('Erro ao carregar ordens');
+      const data = await res.json();
+      setOrdens(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/api/ordens/cliente')
-      .then(res => res.json())
-      .then(data => {
-        setOrdens(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+    fetchOrdens();
   }, []);
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchOrdens();
+  };
+
+  const total = ordens.length;
+  const pendentes = ordens.filter(o => o.estado !== 'concluida' && o.estado !== 'cancelada').length;
+  const concluidas = ordens.filter(o => o.estado === 'concluida').length;
+  const andamento = ordens.filter(o => o.estado === 'em_andamento').length;
+
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-ice mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-black/30 backdrop-blur-md rounded-xl p-6 border border-white/20">
-          <h2 className="text-xl font-semibold text-ice mb-4">Bem-vindo!</h2>
-          <p className="text-ice/80 mb-4">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <button onClick={handleRefresh} disabled={refreshing} className="btn-outline flex items-center gap-2">
+          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-4 flex items-center justify-between">
+          <div><p className="text-gray-500 text-sm">Total OS</p><p className="text-2xl font-bold">{total}</p></div>
+          <ClipboardList className="text-primary w-8 h-8" />
+        </div>
+        <div className="card p-4 flex items-center justify-between">
+          <div><p className="text-gray-500 text-sm">Pendentes</p><p className="text-2xl font-bold text-warning">{pendentes}</p></div>
+          <Clock className="text-warning w-8 h-8" />
+        </div>
+        <div className="card p-4 flex items-center justify-between">
+          <div><p className="text-gray-500 text-sm">Em andamento</p><p className="text-2xl font-bold text-primary">{andamento}</p></div>
+          <AlertCircle className="text-primary w-8 h-8" />
+        </div>
+        <div className="card p-4 flex items-center justify-between">
+          <div><p className="text-gray-500 text-sm">Concluídas</p><p className="text-2xl font-bold text-success">{concluidas}</p></div>
+          <CheckCircle className="text-success w-8 h-8" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card p-4">
+          <h2 className="text-xl font-semibold mb-4">Bem-vindo!</h2>
+          <p className="text-gray-600 mb-4">
             Acompanhe as suas ordens de serviço e tire dúvidas com o nosso agente inteligente.
           </p>
           <Link href="/modulos/cliente/chat">
-            <button className="bg-accent text-deep px-4 py-2 rounded-lg font-medium hover:bg-orange-500 transition">
-              Falar com Agente
-            </button>
+            <button className="btn-primary flex items-center gap-2"><MessageSquare size={18} /> Falar com Agente</button>
           </Link>
         </div>
-        <div className="bg-black/30 backdrop-blur-md rounded-xl p-6 border border-white/20">
-          <h2 className="text-xl font-semibold text-ice mb-4">Últimas Ordens</h2>
-          {loading ? (
-            <p className="text-ice/60">A carregar...</p>
-          ) : ordens.length === 0 ? (
-            <p className="text-ice/60">Nenhuma ordem encontrada.</p>
+        <div className="card p-4">
+          <h2 className="text-xl font-semibold mb-4">Últimas Ordens</h2>
+          {ordens.length === 0 ? (
+            <p className="text-gray-400">Nenhuma ordem encontrada.</p>
           ) : (
             <ul className="space-y-2">
-              {ordens.map(os => (
-                <li key={os.id} className="border-b border-white/10 pb-2">
-                  <p className="text-ice">{os.descricao}</p>
-                  <p className="text-sm text-ice/60">Status: {os.estado} | Data: {os.data_agendada} | Valor: {os.custo_total} Kz</p>
+              {ordens.slice(0, 5).map(os => (
+                <li key={os.id} className="border-b border-gray-100 pb-2">
+                  <p className="text-gray-800 font-medium">{os.descricao}</p>
+                  <p className="text-sm text-gray-500">Status: {os.estado} | Data: {os.data_agendada || '-'}</p>
                 </li>
               ))}
             </ul>
           )}
-          <Link href="/modulos/cliente/ordens" className="text-accent text-sm mt-2 inline-block">
-            Ver todas →
-          </Link>
+          <Link href="/modulos/cliente/minhas-os" className="text-primary text-sm mt-2 inline-block">Ver todas →</Link>
         </div>
       </div>
     </div>

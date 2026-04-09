@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import { useEffect, useState } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 interface Agendamento {
   id: number;
@@ -8,28 +9,6 @@ interface Agendamento {
   data_agendada: string;
   cliente_nome: string;
   estado: string;
-}
-
-function getStatusBadge(status: string) {
-  const colors: Record<string, string> = {
-    pendente: 'bg-yellow-500/20 text-yellow-300',
-    em_andamento: 'bg-blue-500/20 text-blue-300',
-    aguardando_pecas: 'bg-orange-500/20 text-orange-300',
-    concluida: 'bg-green-500/20 text-green-300',
-    cancelada: 'bg-red-500/20 text-red-300',
-  };
-  return colors[status] || 'bg-gray-500/20 text-gray-300';
-}
-
-function formatStatus(status: string) {
-  const labels: Record<string, string> = {
-    pendente: 'Pendente',
-    em_andamento: 'Em andamento',
-    aguardando_pecas: 'Aguardando peças',
-    concluida: 'Concluída',
-    cancelada: 'Cancelada',
-  };
-  return labels[status] || status;
 }
 
 export default function TecnicoAgendaPage() {
@@ -41,6 +20,7 @@ export default function TecnicoAgendaPage() {
     const fetchAgenda = async () => {
       try {
         const res = await fetch('/api/tecnico/agenda');
+        if (!res.ok) throw new Error('Erro ao carregar agenda');
         const data = await res.json();
         setAgendamentos(data);
       } catch (error) {
@@ -58,39 +38,40 @@ export default function TecnicoAgendaPage() {
     return true;
   });
 
-  if (loading) return <div className="text-ice text-center py-12">A carregar...</div>;
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-ice mb-6">Minha Agenda</h1>
-
-      <div className="mb-4 flex gap-2">
-        <button onClick={() => setFiltro('todas')} className={`px-3 py-1 rounded-lg text-sm ${filtro === 'todas' ? 'bg-accent text-deep' : 'bg-white/10 text-ice'}`}>Todas</button>
-        <button onClick={() => setFiltro('pendentes')} className={`px-3 py-1 rounded-lg text-sm ${filtro === 'pendentes' ? 'bg-accent text-deep' : 'bg-white/10 text-ice'}`}>Pendentes</button>
-        <button onClick={() => setFiltro('concluidas')} className={`px-3 py-1 rounded-lg text-sm ${filtro === 'concluidas' ? 'bg-accent text-deep' : 'bg-white/10 text-ice'}`}>Concluídas</button>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Minha Agenda</h1>
+      <div className="flex gap-2 mb-4">
+        {['todas', 'pendentes', 'concluidas'].map(op => (
+          <button
+            key={op}
+            onClick={() => setFiltro(op)}
+            className={`px-3 py-1 rounded-full text-sm ${filtro === op ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'}`}
+          >
+            {op === 'todas' ? 'Todas' : op === 'pendentes' ? 'Pendentes' : 'Concluídas'}
+          </button>
+        ))}
       </div>
-
-      {filtered.length === 0 ? (
-        <p className="text-ice/60">Nenhum agendamento encontrado.</p>
-      ) : (
-        <div className="space-y-4">
-          {filtered.map(a => (
-            <div key={a.id} className="bg-black/30 backdrop-blur-md rounded-xl p-4 border border-white/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Calendar size={16} className="text-accent" />
-                  <span className="text-ice font-medium">{a.data_agendada || 'Data não definida'}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusBadge(a.estado)}`}>
-                    {formatStatus(a.estado)}
-                  </span>
-                </div>
-                <p className="text-ice/90">{a.descricao}</p>
-                <p className="text-ice/60 text-sm">Cliente: {a.cliente_nome}</p>
+      <div className="space-y-4">
+        {filtered.map(a => (
+          <div key={a.id} className="card p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div className="flex items-center gap-3">
+              <Calendar className="text-primary" size={20} />
+              <div>
+                <p className="font-medium text-gray-800">{a.data_agendada || 'Data não definida'}</p>
+                <p className="text-gray-600 text-sm">{a.descricao}</p>
+                <p className="text-gray-500 text-sm">Cliente: {a.cliente_nome}</p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            <span className={`badge ${a.estado === 'concluida' ? 'badge-success' : 'badge-warning'}`}>
+              {a.estado === 'concluida' ? <CheckCircle size={14} /> : <Clock size={14} />} {a.estado.replace('_', ' ')}
+            </span>
+          </div>
+        ))}
+        {filtered.length === 0 && <div className="text-center text-gray-400 py-8">Nenhum agendamento encontrado.</div>}
+      </div>
     </div>
   );
 }

@@ -1,35 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import { useEffect, useState } from 'react';
-import { ClipboardList, CheckCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Users, Wrench, ClipboardList, DollarSign, TrendingUp, PieChart, RefreshCw } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from 'recharts';
 
-const COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#ef4444'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
 interface DashboardStats {
-  total_os: number;
-  pendentes: number;
-  em_andamento: number;
-  concluidas: number;
-  aguardando_pecas: number;
-  ordensRecentes: {
-    id: number;
-    descricao: string;
-    estado: string;
-    data_agendada: string;
-    cliente_nome: string;
-  }[];
+  totalClientes: number;
+  totalTecnicos: number;
+  totalOrdens: number;
+  faturamentoTotal: number;
+  faturamentoMensal: { mes: string; total: number }[];
   statusDist: { name: string; value: number }[];
+  ordensRecentes: { id: number; descricao: string; estado: string; data_agendada: string; cliente_nome: string }[];
 }
 
-export default function TecnicoDashboard() {
+export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/tecnico/dashboard');
-      if (!res.ok) throw new Error('Erro ao carregar dashboard');
+      const res = await fetch('/api/admin/stats');
+      if (!res.ok) throw new Error('Erro ao carregar estatísticas');
       const data = await res.json();
       setStats(data);
     } catch (error) {
@@ -52,22 +48,22 @@ export default function TecnicoDashboard() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <RefreshCw className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   const cards = [
-    { title: 'Total de OS', value: stats?.total_os || 0, icon: ClipboardList, color: 'bg-blue-100 text-blue-600' },
-    { title: 'Pendentes', value: stats?.pendentes || 0, icon: Clock, color: 'bg-yellow-100 text-yellow-600' },
-    { title: 'Em andamento', value: stats?.em_andamento || 0, icon: AlertCircle, color: 'bg-orange-100 text-orange-600' },
-    { title: 'Concluídas', value: stats?.concluidas || 0, icon: CheckCircle, color: 'bg-green-100 text-green-600' },
+    { title: 'Clientes', value: stats?.totalClientes || 0, icon: Users, color: 'bg-blue-100 text-blue-600' },
+    { title: 'Técnicos', value: stats?.totalTecnicos || 0, icon: Wrench, color: 'bg-green-100 text-green-600' },
+    { title: 'Ordens', value: stats?.totalOrdens || 0, icon: ClipboardList, color: 'bg-yellow-100 text-yellow-600' },
+    { title: 'Faturamento', value: `Kz ${stats?.faturamentoTotal?.toLocaleString() || 0}`, icon: DollarSign, color: 'bg-purple-100 text-purple-600' },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard do Técnico</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
         <button onClick={handleRefresh} disabled={refreshing} className="btn-outline flex items-center gap-2">
           <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar
         </button>
@@ -88,12 +84,25 @@ export default function TecnicoDashboard() {
         ))}
       </div>
 
-      {/* Gráficos */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-4">
-          <h3 className="font-semibold text-gray-800 mb-4">Distribuição de Status</h3>
+          <h3 className="font-semibold text-gray-800 mb-4">Faturamento Mensal (Kz)</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+            <BarChart data={stats?.faturamentoMensal || []}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="mes" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip contentStyle={{ backgroundColor: 'white', borderColor: '#e5e7eb' }} />
+              <Bar dataKey="total" fill="#3b82f6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="card p-4">
+          <h3 className="font-semibold text-gray-800 mb-4">Status das Ordens</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <RePieChart>
               <Pie
                 data={stats?.statusDist || []}
                 dataKey="value"
@@ -103,32 +112,19 @@ export default function TecnicoDashboard() {
                 outerRadius={80}
                 label
               >
-                {(stats?.statusDist || []).map((entry, index) => (
+                {(stats?.statusDist || []).map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="card p-4">
-          <h3 className="font-semibold text-gray-800 mb-4">Ordens por Estado</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={stats?.statusDist || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" stroke="#6b7280" />
-              <YAxis stroke="#6b7280" />
-              <Tooltip />
-              <Bar dataKey="value" fill="#3b82f6" />
-            </BarChart>
+            </RePieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Ordens recentes */}
+      {/* Recent Orders */}
       <div className="card p-4">
-        <h3 className="font-semibold text-gray-800 mb-4">Últimas Ordens Atribuídas</h3>
+        <h3 className="font-semibold text-gray-800 mb-4">Últimas Ordens</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="border-b border-gray-200 text-gray-500 text-sm">
@@ -142,14 +138,14 @@ export default function TecnicoDashboard() {
                   <td className="text-gray-600 max-w-xs truncate">{os.descricao}</td>
                   <td>
                     <span className={`badge ${os.estado === 'concluida' ? 'badge-success' : os.estado === 'pendente' ? 'badge-warning' : 'badge-primary'}`}>
-                      {os.estado.replace('_', ' ')}
+                      {os.estado}
                     </span>
-                   </td>
+                  </td>
                   <td className="text-gray-500">{os.data_agendada || '-'}</td>
                 </tr>
               ))}
               {(!stats?.ordensRecentes || stats.ordensRecentes.length === 0) && (
-                <tr><td colSpan={5} className="py-4 text-center text-gray-400">Nenhuma ordem atribuída</td></tr>
+                <tr><td colSpan={5} className="py-4 text-center text-gray-400">Nenhuma ordem encontrada</td></tr>
               )}
             </tbody>
           </table>

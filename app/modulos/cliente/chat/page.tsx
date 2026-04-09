@@ -1,12 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Send, Menu, X, PlusCircle, LogOut, MessageSquare } from 'lucide-react';
+import { Send, Menu, X, PlusCircle, LogOut, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 
 interface Thread {
   thread_id: string;
@@ -34,13 +34,11 @@ export default function PaginaChatCliente() {
   const fimMensagensRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Redireciona se não autenticado ou não for cliente
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login');
-    if (sessao?.user?.role !== 'cliente') router.push('/');
+    if (sessao?.user?.role !== 'cliente') router.push('/login');
   }, [status, sessao, router]);
 
-  // Carrega threads ao iniciar sessão
   useEffect(() => {
     if (!sessao?.user?.id) return;
     buscarThreads();
@@ -56,11 +54,10 @@ export default function PaginaChatCliente() {
         setThreadAtualId(dados[0].thread_id);
       }
     } catch (err) {
-      console.error('Erro ao buscar threads:', err);
+      console.error(err);
     }
   };
 
-  // Carrega mensagens ao trocar de thread
   useEffect(() => {
     if (threadAtualId && !novaConversa) {
       buscarMensagens(threadAtualId);
@@ -77,7 +74,7 @@ export default function PaginaChatCliente() {
       const dados = await res.json();
       setMensagens(dados);
     } catch (err) {
-      console.error('Erro ao buscar mensagens:', err);
+      console.error(err);
     }
   };
 
@@ -89,7 +86,6 @@ export default function PaginaChatCliente() {
     setCarregando(true);
     setErro(null);
 
-    // Adiciona mensagem do utilizador imediatamente
     const mensagemTemp: Mensagem = {
       direcao: 'entrada',
       conteudo: textoMensagem,
@@ -98,29 +94,20 @@ export default function PaginaChatCliente() {
     setMensagens(prev => [...prev, mensagemTemp]);
     rolarParaBaixo();
 
-    // Cancela pedido anterior se existir
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    // CORREÇÃO: threadId calculado antes do fetch
-    // evita problemas com setState assíncrono
     let threadIdFinal = threadAtualId;
     if (novaConversa || !threadIdFinal) {
-      threadIdFinal = `user-${sessao?.user?.id}-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 8)}`;
+      threadIdFinal = `user-${sessao?.user?.id}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     }
 
-    // CORREÇÃO: timeout separado do AbortController
-    // evita cancelar pedidos futuros acidentalmente
     const timeoutId = setTimeout(() => {
       controller.abort();
       setErro('A resposta está a demorar demasiado. Tente novamente.');
       setCarregando(false);
-    }, 30000);
+    }, 1200000);
 
     try {
       const res = await fetch('/api/agent', {
@@ -129,21 +116,18 @@ export default function PaginaChatCliente() {
         body: JSON.stringify({ mensagem: textoMensagem, threadId: threadIdFinal }),
         signal: controller.signal,
       });
-
       clearTimeout(timeoutId);
 
       if (!res.ok) {
-        let mensagemErro = 'Erro na resposta do agente';
+        let erroMsg = 'Erro na resposta do agente';
         try {
-          const dadosErro = await res.json();
-          mensagemErro = dadosErro.erro || dadosErro.error || mensagemErro;
-        } catch (_) { /* ignora */ }
-        throw new Error(mensagemErro);
+          const dados = await res.json();
+          erroMsg = dados.erro || dados.error || erroMsg;
+        } catch (_) {}
+        throw new Error(erroMsg);
       }
 
       const dados = await res.json();
-
-      // CORREÇÃO: estado atualizado só após sucesso
       setThreadAtualId(threadIdFinal);
       setNovaConversa(false);
 
@@ -154,17 +138,13 @@ export default function PaginaChatCliente() {
       };
       setMensagens(prev => [...prev, mensagemAssistente]);
       buscarThreads();
-
     } catch (err: any) {
       clearTimeout(timeoutId);
-
-      // CORREÇÃO: remove mensagem temporária em caso de erro
       setMensagens(prev => prev.slice(0, -1));
-
       if (err.name === 'AbortError') {
         setErro('O pedido foi cancelado. Tente novamente.');
       } else {
-        console.error('Erro ao enviar mensagem:', err);
+        console.error(err);
         setErro(err.message || 'Erro ao obter resposta. Tente novamente.');
       }
     } finally {
@@ -185,69 +165,50 @@ export default function PaginaChatCliente() {
     fimMensagensRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSair = () => {
-    signOut({ callbackUrl: '/' });
-  };
+  const handleSair = () => signOut({ callbackUrl: '/' });
 
-  // Ecrã de carregamento inicial
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-deep to-teal">
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex space-x-1">
-            <div className="w-3 h-3 bg-ice rounded-full animate-bounce" />
-            <div className="w-3 h-3 bg-ice rounded-full animate-bounce delay-100" />
-            <div className="w-3 h-3 bg-ice rounded-full animate-bounce delay-200" />
-          </div>
-          <span className="text-ice text-sm">A carregar...</span>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-deep to-teal">
-
-      {/* Botão menu mobile */}
+    <div className="min-h-screen bg-dark-bg">
       <button
         onClick={() => setSidebarAberta(!sidebarAberta)}
-        className="fixed top-4 left-4 z-50 md:hidden bg-black/30 backdrop-blur-md p-2 rounded-lg text-ice"
-        aria-label={sidebarAberta ? 'Fechar menu' : 'Abrir menu'}
+        className="fixed top-4 left-4 z-50 md:hidden bg-surface p-2 rounded-lg shadow-md text-text hover:text-primary transition"
       >
         {sidebarAberta ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       <div className="flex h-screen">
-
         {/* Sidebar */}
         <aside
           className={`
-            fixed md:static inset-y-0 left-0 z-40 w-80
-            bg-black/30 backdrop-blur-md border-r border-white/20
+            fixed md:static inset-y-0 left-0 z-40 w-80 bg-surface/80 backdrop-blur-md border-r border-border
             transform transition-transform duration-300 ease-in-out
             ${sidebarAberta ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
           `}
         >
           <div className="flex flex-col h-full">
-
-            {/* Cabeçalho sidebar */}
-            <div className="p-4 border-b border-white/20">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-ice font-bold text-xl">Conversas</h2>
+                <h2 className="text-xl font-bold text-text">Conversas</h2>
                 <button
                   onClick={iniciarNovaConversa}
-                  className="p-2 text-ice hover:text-accent transition"
-                  title="Nova conversa"
+                  className="p-2 text-text-secondary hover:text-primary transition rounded-lg"
                 >
                   <PlusCircle size={20} />
                 </button>
               </div>
             </div>
 
-            {/* Lista de threads */}
             <div className="flex-1 overflow-y-auto p-2 space-y-2">
               {threads.length === 0 ? (
-                <div className="text-ice/60 text-sm p-4 text-center">
+                <div className="text-text-secondary text-sm p-4 text-center">
                   Nenhuma conversa anterior.
                 </div>
               ) : (
@@ -263,17 +224,17 @@ export default function PaginaChatCliente() {
                     className={`
                       w-full text-left p-3 rounded-lg transition
                       ${threadAtualId === thread.thread_id && !novaConversa
-                        ? 'bg-accent/20 border border-accent'
-                        : 'hover:bg-white/10'}
+                        ? 'bg-primary/20 border border-primary'
+                        : 'hover:bg-surface/50'}
                     `}
                   >
                     <div className="flex items-center gap-2">
-                      <MessageSquare size={16} className="text-ice/60 shrink-0" />
-                      <span className="text-ice text-sm truncate">
+                      <MessageSquare size={16} className="text-text-secondary shrink-0" />
+                      <span className="text-text text-sm truncate">
                         {thread.ultima_mensagem?.slice(0, 40) || 'Conversa'}
                       </span>
                     </div>
-                    <div className="text-xs text-ice/40 mt-1 pl-6">
+                    <div className="text-xs text-text-secondary mt-1 pl-6">
                       {new Date(thread.ultima_atividade).toLocaleDateString('pt-PT', {
                         day: '2-digit',
                         month: 'short',
@@ -285,14 +246,13 @@ export default function PaginaChatCliente() {
               )}
             </div>
 
-            {/* Rodapé sidebar */}
-            <div className="p-4 border-t border-white/20">
-              <div className="text-ice/40 text-xs mb-3 truncate">
+            <div className="p-4 border-t border-border">
+              <div className="text-text-secondary text-xs mb-3 truncate">
                 {sessao?.user?.name || sessao?.user?.email}
               </div>
               <button
                 onClick={handleSair}
-                className="w-full flex items-center gap-2 p-2 text-ice hover:text-accent transition rounded-lg"
+                className="w-full flex items-center gap-2 p-2 text-text-secondary hover:text-primary transition rounded-lg"
               >
                 <LogOut size={18} />
                 <span>Sair</span>
@@ -303,22 +263,17 @@ export default function PaginaChatCliente() {
 
         {/* Área principal */}
         <main className="flex-1 flex flex-col overflow-hidden">
-
-          {/* Lista de mensagens */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-
-            {/* Mensagem de erro */}
             {erro && (
-              <div className="bg-red-500/20 border border-red-500 text-red-200 p-3 rounded-lg text-sm flex items-start gap-2">
-                <span className="shrink-0">⚠️</span>
+              <div className="bg-danger/10 border border-danger text-danger p-3 rounded-lg text-sm flex items-start gap-2">
+                <AlertCircle size={18} className="shrink-0 mt-0.5" />
                 <span>{erro}</span>
               </div>
             )}
 
-            {/* Estado vazio */}
             {mensagens.length === 0 && !carregando && (
               <div className="flex items-center justify-center h-full">
-                <div className="text-center text-ice/60 space-y-3">
+                <div className="text-center text-text-secondary space-y-3">
                   <MessageSquare size={48} className="mx-auto opacity-30" />
                   <p className="text-lg font-medium">Como posso ajudar?</p>
                   <p className="text-sm opacity-70">
@@ -328,7 +283,6 @@ export default function PaginaChatCliente() {
               </div>
             )}
 
-            {/* Mensagens */}
             {mensagens.map((msg, idx) => (
               <div
                 key={idx}
@@ -338,14 +292,14 @@ export default function PaginaChatCliente() {
                   className={`
                     max-w-[80%] p-3 rounded-2xl
                     ${msg.direcao === 'entrada'
-                      ? 'bg-accent text-deep rounded-br-sm'
-                      : 'bg-white/10 text-ice backdrop-blur-sm rounded-bl-sm'}
+                      ? 'bg-primary text-white rounded-br-sm'
+                      : 'bg-surface text-text rounded-bl-sm'}
                   `}
                 >
                   <p className="whitespace-pre-wrap text-sm leading-relaxed">
                     {msg.conteudo}
                   </p>
-                  <div className="text-xs opacity-50 mt-1 text-right">
+                  <div className="text-xs opacity-60 mt-1 text-right">
                     {new Date(msg.criado_em).toLocaleTimeString('pt-PT', {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -355,15 +309,10 @@ export default function PaginaChatCliente() {
               </div>
             ))}
 
-            {/* Indicador de digitação */}
             {carregando && (
               <div className="flex justify-start">
-                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-2xl rounded-bl-sm">
-                  <div className="flex space-x-1 items-center h-4">
-                    <div className="w-2 h-2 bg-ice/60 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-ice/60 rounded-full animate-bounce delay-100" />
-                    <div className="w-2 h-2 bg-ice/60 rounded-full animate-bounce delay-200" />
-                  </div>
+                <div className="bg-surface rounded-2xl rounded-bl-sm p-3">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
               </div>
             )}
@@ -371,11 +320,9 @@ export default function PaginaChatCliente() {
             <div ref={fimMensagensRef} />
           </div>
 
-          {/* Área de input */}
-          <div className="p-4 border-t border-white/20 bg-black/20 backdrop-blur-sm">
+          <div className="p-4 border-t border-border bg-surface/50">
             <div className="flex gap-2 items-end">
-              <input
-                type="text"
+              <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -386,24 +333,13 @@ export default function PaginaChatCliente() {
                 }}
                 placeholder="Escreva a sua mensagem..."
                 disabled={carregando}
-                className="
-                  flex-1 p-3 bg-white/10 border border-white/30 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-accent
-                  text-ice placeholder:text-ice/40
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  text-sm
-                "
+                rows={1}
+                className="flex-1 p-3 bg-dark-bg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text placeholder:text-text-secondary resize-none"
               />
               <button
                 onClick={enviarMensagem}
                 disabled={carregando || !input.trim()}
-                className="
-                  p-3 bg-accent text-deep rounded-lg
-                  hover:bg-orange-500 transition
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  shrink-0
-                "
-                aria-label="Enviar mensagem"
+                className="p-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={20} />
               </button>

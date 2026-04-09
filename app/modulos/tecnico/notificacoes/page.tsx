@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Bell, RefreshCw } from 'lucide-react';
 
 interface Notificacao {
   id: number;
@@ -11,54 +11,62 @@ interface Notificacao {
   criado_em: string;
 }
 
-export default function TecnicoNotificacoesPage() {
+export default function ClienteNotificacoesPage() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchNotificacoes();
-  }, []);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchNotificacoes = async () => {
     try {
       const res = await fetch('/api/tecnico/notificacoes');
+      if (!res.ok) throw new Error('Erro ao carregar notificações');
       const data = await res.json();
       setNotificacoes(data.notificacoes || []);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const marcarComoLida = async (id: number) => {
-    await fetch(`/api/tecnico/notificacoes/${id}`, { method: 'PATCH' });
-    setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n));
+  useEffect(() => { fetchNotificacoes(); }, []);
+
+  const marcarLida = async (id: number) => {
+    try {
+      await fetch(`/api/cliente/notificacoes/${id}`, { method: 'PATCH' });
+      setNotificacoes(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n));
+    } catch (error) { console.error(error); }
   };
 
-  if (loading) return <div className="text-ice text-center py-12">A carregar...</div>;
+  const marcarTodasLidas = async () => {
+    const naoLidas = notificacoes.filter(n => !n.lida);
+    for (const n of naoLidas) await marcarLida(n.id);
+  };
+
+  if (loading) return <div className="flex justify-center items-center h-64"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-ice mb-6">Notificações</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Bell size={24} /> Notificações</h1>
+        <div className="flex gap-2">
+          <button onClick={marcarTodasLidas} className="btn-outline text-sm">Marcar todas como lidas</button>
+          <button onClick={() => { setRefreshing(true); fetchNotificacoes(); }} className="btn-outline flex items-center gap-1"><RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> Actualizar</button>
+        </div>
+      </div>
       <div className="space-y-3">
         {notificacoes.length === 0 ? (
-          <p className="text-ice/60 text-center py-8">Nenhuma notificação encontrada.</p>
+          <div className="card p-8 text-center text-gray-400">Nenhuma notificação encontrada.</div>
         ) : (
-          notificacoes.map(notif => (
-            <div key={notif.id} className={`bg-black/30 backdrop-blur-md rounded-lg p-4 border border-white/20 transition ${!notif.lida ? 'border-accent/50' : ''}`}>
+          notificacoes.map(n => (
+            <div key={n.id} className={`card p-4 transition ${!n.lida ? 'border-l-4 border-l-primary' : ''}`}>
               <div className="flex justify-between items-start gap-4">
                 <div className="flex-1">
-                  <p className="text-ice">{notif.conteudo}</p>
-                  <p className="text-xs text-ice/40 mt-1">
-                    {format(new Date(notif.criado_em), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}
-                  </p>
+                  <p className="text-gray-800">{n.conteudo}</p>
+                  <p className="text-xs text-gray-400 mt-1">{format(new Date(n.criado_em), "dd/MM/yyyy 'às' HH:mm", { locale: pt })}</p>
                 </div>
-                {!notif.lida && (
-                  <button onClick={() => marcarComoLida(notif.id)} className="text-accent hover:text-orange-400 transition" title="Marcar como lida">
-                    <CheckCircle size={20} />
-                  </button>
-                )}
+                {!n.lida && <button onClick={() => marcarLida(n.id)} className="text-primary hover:text-primary-hover"><CheckCircle size={20} /></button>}
               </div>
             </div>
           ))
