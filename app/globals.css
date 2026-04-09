@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-deep: #0F2027;
+  --color-medium: #203A43;
+  --color-teal: #2C5364;
+  --color-ice: #F8F9FA;
+  --color-soft: #E9ECEF;
+  --color-accent: #FFB347;
+  --color-success: #2E7D32;
+  --color-warning: #fc0303;
+  --color-danger: #D32F2F;
+}
+
+@layer utilities {
+  .animated-bg {
+    background: linear-gradient(135deg, var(--color-deep), var(--color-medium), var(--color-teal));
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
