@@ -1,5 +1,5 @@
 import pool from '../lib/db';
-import { hash } from 'bcrypt';
+import { hash } from 'bcryptjs';
 
 async function seed() {
   const client = await pool.connect();
