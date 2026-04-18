@@ -1,17 +1,21 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== 'administrador') {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }
 
+  const { id } = await params;
   const { nome, email, telefone, papel, especialidade, password } = await req.json();
+
   if (!nome || !email || !telefone) {
     return NextResponse.json({ error: 'Campos obrigatórios' }, { status: 400 });
   }
@@ -29,18 +33,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const hashed = await bcrypt.hash(password, 10);
     fields.push(`hash_senha = $${idx++}`); values.push(hashed);
   }
-  values.push(params.id);
+  values.push(id);
 
   await query(`UPDATE utilizadores SET ${fields.join(', ')} WHERE id = $${idx}`, values);
   return NextResponse.json({ success: true });
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== 'administrador') {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }
 
-  await query('DELETE FROM utilizadores WHERE id = $1', [params.id]);
+  const { id } = await params;
+  await query('DELETE FROM utilizadores WHERE id = $1', [id]);
   return NextResponse.json({ success: true });
 }

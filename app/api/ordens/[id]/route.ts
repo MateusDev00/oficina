@@ -6,16 +6,17 @@ import { query } from '@/lib/db';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
   }
-  const ordemId = params.id;
+
+  const { id: ordemId } = await params;
   const { estado } = await req.json();
 
-  // Check if user is allowed to update (técnico or admin)
+  // Verificar permissão (apenas técnico ou administrador)
   if (session.user.role !== 'tecnico' && session.user.role !== 'administrador') {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
   }
