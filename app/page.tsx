@@ -1,10 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Car, Wrench, Wind, Battery, Zap, Activity, ChevronRight } from 'lucide-react';
+import { Car, Wrench, Wind, Battery, Zap, Activity, ChevronRight, Menu, X } from 'lucide-react';
 
 export default function HomePage() {
   const [activeSection, setActiveSection] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
@@ -27,28 +28,30 @@ export default function HomePage() {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+      setMobileMenuOpen(false); // fecha menu ao clicar
     }
   };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Vídeo de fundo com overlay escuro */}
+      {/* Vídeo de fundo - corrigido para aparecer */}
       <div className="fixed inset-0 z-0">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover opacity-40"
+          className="w-full h-full object-cover"
+          poster="/background-poster.jpg" // opcional: imagem de fallback enquanto carrega
         >
           <source src="/background.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-br from-deep/80 to-teal/80 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-deep/80 to-teal/80" />
       </div>
 
       {/* Conteúdo */}
       <div className="relative z-20 container mx-auto px-4 py-6">
-        {/* Cabeçalho */}
+        {/* Cabeçalho responsivo */}
         <header className="flex flex-wrap justify-between items-center gap-4 mb-12 pb-4 border-b border-white/20 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-accent to-orange-400 rounded-xl flex items-center justify-center shadow-lg">
@@ -57,7 +60,8 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold text-ice">Oficina LPN</h1>
           </div>
 
-          <nav className="flex gap-6 items-center">
+          {/* Menu para desktop */}
+          <nav className="hidden md:flex gap-6 items-center">
             {['sobre', 'servicos', 'especializacoes'].map((id) => (
               <button
                 key={id}
@@ -80,8 +84,45 @@ export default function HomePage() {
               </Link>
             </div>
           </nav>
+
+          {/* Botão hambúrguer para mobile */}
+          <button
+            className="md:hidden text-ice focus:outline-none"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
+          >
+            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
         </header>
 
+        {/* Menu mobile (colapsável) */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-black/50 backdrop-blur-md rounded-2xl p-4 mb-6 flex flex-col gap-3">
+            {['sobre', 'servicos', 'especializacoes'].map((id) => (
+              <button
+                key={id}
+                onClick={() => scrollToSection(id)}
+                className={`text-ice hover:text-accent transition font-medium py-2 ${activeSection === id ? 'text-accent' : ''}`}
+              >
+                {id === 'sobre' ? 'Sobre' : id === 'servicos' ? 'Serviços' : 'Especializações'}
+              </button>
+            ))}
+            <div className="flex flex-col gap-2 pt-2 border-t border-white/20">
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                <button className="w-full py-2 rounded-full border border-accent text-accent hover:bg-accent hover:text-deep transition">
+                  Entrar
+                </button>
+              </Link>
+              <Link href="/registrar" onClick={() => setMobileMenuOpen(false)}>
+                <button className="w-full py-2 rounded-full bg-accent text-deep shadow-lg hover:bg-orange-500 transition">
+                  Criar Conta
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Resto do conteúdo permanece igual... */}
         {/* Secção Hero */}
         <section id="sobre" className="text-center py-20 md:py-32">
           <h2 className="text-4xl md:text-6xl font-bold mb-4 text-ice drop-shadow-lg">
