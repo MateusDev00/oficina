@@ -34,7 +34,7 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Vídeo de fundo - corrigido para aparecer */}
+      {/* Vídeo de fundo (corrigido) */}
       <div className="fixed inset-0 z-0">
         <video
           autoPlay
@@ -42,16 +42,18 @@ export default function HomePage() {
           muted
           playsInline
           className="w-full h-full object-cover"
-           // opcional: imagem de fallback enquanto carrega
+          poster="/background-poster.jpg" // imagem de fallback enquanto carrega
+          onError={(e) => (e.currentTarget.style.display = 'none')} // esconde vídeo se falhar
         >
           <source src="/background.mp4" type="video/mp4" />
         </video>
+        {/* Overlay escuro para contraste */}
         <div className="absolute inset-0 bg-gradient-to-br from-deep/80 to-teal/80" />
       </div>
 
       {/* Conteúdo */}
       <div className="relative z-20 container mx-auto px-4 py-6">
-        {/* Cabeçalho responsivo */}
+        {/* Cabeçalho */}
         <header className="flex flex-wrap justify-between items-center gap-4 mb-12 pb-4 border-b border-white/20 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-accent to-orange-400 rounded-xl flex items-center justify-center shadow-lg">
@@ -60,7 +62,7 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold text-ice">Oficina LPN</h1>
           </div>
 
-          {/* Menu para desktop */}
+          {/* Menu desktop */}
           <nav className="hidden md:flex gap-6 items-center">
             {['sobre', 'servicos', 'especializacoes'].map((id) => (
               <button
@@ -85,29 +87,44 @@ export default function HomePage() {
             </div>
           </nav>
 
-          {/* Botão hambúrguer para mobile */}
+          {/* Botão hambúrguer (mobile) */}
           <button
-            className="md:hidden text-ice focus:outline-none"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Menu"
+            className="md:hidden text-ice focus:outline-none z-30"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Abrir menu"
           >
-            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            <Menu size={28} />
           </button>
         </header>
 
-        {/* Menu mobile (colapsável) */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-black/50 backdrop-blur-md rounded-2xl p-4 mb-6 flex flex-col gap-3">
+        {/* Menu lateral (mobile) - slide da esquerda */}
+        <div
+          className={`
+            fixed inset-y-0 left-0 z-50 w-64 bg-black/90 backdrop-blur-md shadow-2xl
+            transform transition-transform duration-300 ease-in-out
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <div className="flex justify-end p-4">
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-ice hover:text-accent"
+              aria-label="Fechar menu"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <div className="flex flex-col gap-4 px-6">
             {['sobre', 'servicos', 'especializacoes'].map((id) => (
               <button
                 key={id}
                 onClick={() => scrollToSection(id)}
-                className={`text-ice hover:text-accent transition font-medium py-2 ${activeSection === id ? 'text-accent' : ''}`}
+                className={`text-left text-ice hover:text-accent transition py-2 ${activeSection === id ? 'text-accent border-l-2 border-accent pl-2' : ''}`}
               >
                 {id === 'sobre' ? 'Sobre' : id === 'servicos' ? 'Serviços' : 'Especializações'}
               </button>
             ))}
-            <div className="flex flex-col gap-2 pt-2 border-t border-white/20">
+            <div className="flex flex-col gap-3 pt-4 border-t border-white/20">
               <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                 <button className="w-full py-2 rounded-full border border-accent text-accent hover:bg-accent hover:text-deep transition">
                   Entrar
@@ -120,9 +137,17 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Overlay escuro quando menu aberto (opcional) */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
         )}
 
-        {/* Resto do conteúdo permanece igual... */}
+        {/* Resto do conteúdo (secções) permanece igual */}
         {/* Secção Hero */}
         <section id="sobre" className="text-center py-20 md:py-32">
           <h2 className="text-4xl md:text-6xl font-bold mb-4 text-ice drop-shadow-lg">

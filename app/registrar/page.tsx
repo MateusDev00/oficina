@@ -34,88 +34,95 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="card w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
-            <span className="text-white font-bold text-2xl">LPN</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-deep to-teal p-4">
+      <div className="w-full max-w-sm bg-black/40 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-accent to-orange-400 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-md">
+            <span className="text-deep font-bold text-xl">LPN</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Criar Conta</h1>
-          <p className="text-gray-500 mt-1">Registe-se para aceder aos serviços</p>
+          <h1 className="text-2xl font-bold text-ice">Criar Conta</h1>
+          <p className="text-ice/70 text-sm mt-1">Registe-se para aceder aos serviços</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+            <label className="block text-xs font-medium text-ice/80 mb-1">Nome completo</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
               <input
                 type="text"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="input w-full pl-10"
+                className="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice text-sm placeholder:text-ice/40"
+                placeholder="Seu nome"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+            <label className="block text-xs font-medium text-ice/80 mb-1">E-mail</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input w-full pl-10"
+                className="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice text-sm placeholder:text-ice/40"
+                placeholder="seu@email.com"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Telefone (+244...)</label>
+            <label className="block text-xs font-medium text-ice/80 mb-1">Telefone (+244...)</label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
               <input
                 type="tel"
                 value={telefone}
                 onChange={(e) => setTelefone(e.target.value)}
-                className="input w-full pl-10"
+                className="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice text-sm placeholder:text-ice/40"
+                placeholder="+244 900 000 001"
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <label className="block text-xs font-medium text-ice/80 mb-1">Senha</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-accent" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input w-full pl-10"
+                className="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-ice text-sm"
+                placeholder="••••••••"
                 required
               />
             </div>
           </div>
-          {error && <p className="text-danger text-sm text-center">{error}</p>}
+          {error && <p className="text-red-300 text-xs text-center">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
+            className="w-full py-2 bg-accent text-deep rounded-lg font-bold text-sm hover:bg-orange-500 transition disabled:opacity-50 shadow-md flex items-center justify-center gap-2"
           >
-            <UserPlus size={18} /> {loading ? 'A processar...' : 'Registar'}
+            <UserPlus size={16} /> {loading ? 'A processar...' : 'Registar'}
           </button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-gray-200 text-center">
-          <p className="text-gray-600">
+        <div className="mt-5 pt-4 border-t border-white/20 text-center">
+          <p className="text-ice/70 text-xs">
             Já tem conta?{' '}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-accent hover:underline font-medium">
               Entrar
             </Link>
           </p>
-          <div className="mt-3">
-            <Link href="/" className="text-sm text-gray-500 hover:text-primary">
+          <div className="mt-2">
+            <Link
+              href="/"
+              className="text-xs text-ice/50 hover:text-accent transition"
+            >
               ← Voltar para a página inicial
             </Link>
           </div>
