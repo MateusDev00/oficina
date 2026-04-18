@@ -42,7 +42,7 @@ export default function HomePage() {
           muted
           playsInline
           className="w-full h-full object-cover"
-          poster="/background-poster.jpg" // opcional: imagem de fallback enquanto carrega
+           // opcional: imagem de fallback enquanto carrega
         >
           <source src="/background.mp4" type="video/mp4" />
         </video>
