@@ -14,11 +14,8 @@ module.exports = {
         soft: "#E9ECEF",
         accent: "#FFB347",
         success: "#2E7D32",
-        warning: "#F57C00",
+        warning: "#fc0303",
         danger: "#D32F2F",
-      },
-      backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #0F2027, #2C5364)',
       },
     },
   },
