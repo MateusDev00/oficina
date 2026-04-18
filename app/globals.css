@@ -1,91 +1,23 @@
-@import "tailwindcss";
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
-  :root {
-    --bg: #f3f4f6;
-    --surface: #ffffff;
-    --border: #e5e7eb;
-    --text: #111827;
-    --text-secondary: #6b7280;
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
-    --danger: #ef4444;
-    --success: #10b981;
-    --warning: #f59e0b;
-  }
   body {
-    background-color: var(--bg);
-    color: var(--text);
+    background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+    color: #F8F9FA;
   }
 }
 
-@layer components {
-  .card {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 1rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+@layer utilities {
+  .animated-bg {
+    background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
   }
-  .btn-primary {
-    background-color: var(--primary);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: background-color 0.2s;
-  }
-  .btn-primary:hover {
-    background-color: var(--primary-hover);
-  }
-  .btn-outline {
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-  .btn-outline:hover {
-    background-color: var(--primary);
-    color: white;
-  }
-  .input {
-    background-color: white;
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    color: var(--text);
-  }
-  .input:focus {
-    outline: none;
-    ring: 2px solid var(--primary);
-    border-color: transparent;
-  }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-  .badge-primary {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: var(--primary);
-  }
-  .badge-success {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: var(--success);
-  }
-  .badge-warning {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: var(--warning);
-  }
-  .badge-danger {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: var(--danger);
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 }
