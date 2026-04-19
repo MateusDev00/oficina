@@ -31,9 +31,9 @@ export default function LoginPage() {
 
     const res = await fetch('/api/auth/me');
     const user = await res.json();
-    if (user.role === 'administrador') router.push('/modulos/admin/dashboard');
+    if (user.role === 'administrador') router.push('/modulos/admin/painel');
     else if (user.role === 'tecnico') router.push('/modulos/tecnico/dashboard');
-    else router.push('/modulos/cliente/dashboard');
+    else router.push('/modulos/cliente/painel');
   };
 
   return (
