@@ -237,7 +237,6 @@ const services = [
 
 const specializations = [
   { icon: "🚗", name: "Veículos Nacionais", desc: "Experiência com marcas como Toyota, Hyundai, Kia, etc." },
-  { icon: "🏎️", name: "Importados de Luxo", desc: "Especialistas em BMW, Mercedes, Audi e outras." },
   { icon: "🔋", name: "Híbridos e Elétricos", desc: "Manutenção de veículos de nova geração." },
   { icon: "🏍️", name: "Motocicletas", desc: "Serviços completos para motos de todas as cilindradas." },
   { icon: "🛻", name: "Caminhões e Utilitários", desc: "Manutenção pesada e revisão de frotas." },
