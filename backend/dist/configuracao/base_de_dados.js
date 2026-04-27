@@ -6,9 +6,9 @@ const ambiente_1 = require("./ambiente");
 const pool = new pg_1.Pool({
     connectionString: ambiente_1.DATABASE_URL,
     ssl: ambiente_1.NODE_ENV === 'producao' ? { rejectUnauthorized: false } : false,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    max: 5,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
 });
 pool.on('connect', (client) => {
     client.on('error', (err) => {

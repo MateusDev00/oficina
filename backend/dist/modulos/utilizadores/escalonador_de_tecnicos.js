@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const base_de_dados_1 = require("../configuracao/base_de_dados");
-const emissor_de_eventos_1 = require("../../../backend/src/nucleo/eventos/emissor_de_eventos");
+const base_de_dados_1 = require("../../configuracao/base_de_dados");
+const emissor_de_eventos_1 = require("../../nucleo/eventos/emissor_de_eventos");
 exports.default = {
     async otimizarAlocacoes() {
         const hoje = new Date().toISOString().split('T')[0];

@@ -23,7 +23,12 @@ class AutenticacaoServico {
         if (!utilizador.disponivel) {
             throw new Error('Utilizador inativo. Contacte o administrador.');
         }
-        const token = jsonwebtoken_1.default.sign({ id: utilizador.id, papel: utilizador.papel }, ambiente_1.JWT_SECRET, { expiresIn: ambiente_1.JWT_EXPIRES_IN });
+        const payload = { id: utilizador.id };
+        const secret = ambiente_1.JWT_SECRET;
+        const options = {
+            expiresIn: ambiente_1.JWT_EXPIRES_IN, // compatibilidade com versões recentes
+        };
+        const token = jsonwebtoken_1.default.sign(payload, secret, options);
         const { hash_senha, ...utilizadorSemSenha } = utilizador;
         return { token, utilizador: utilizadorSemSenha };
     }
@@ -62,9 +67,7 @@ class AutenticacaoServico {
         const token = crypto_1.default.randomBytes(32).toString('hex');
         const expiraEm = 3600; // 1 hora
         await redis_1.default.setex(`recuperacao:${token}`, expiraEm, utilizador.id.toString());
-        // Aqui seria feita a integração com envio de SMS/WhatsApp
         console.log(`Token de recuperação para ${telefone}: ${token}`);
-        // Inserir notificação
         await (0, base_de_dados_1.query)(`INSERT INTO notificacoes (utilizador_id, canal, conteudo, estado)
        VALUES ($1, 'whatsapp', $2, 'pendente')`, [utilizador.id, `Seu código de recuperação: ${token.substring(0, 8)}`]);
     }

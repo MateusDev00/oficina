@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const base_de_dados_1 = require("../configuracao/base_de_dados");
+const base_de_dados_1 = require("../../configuracao/base_de_dados");
 exports.default = {
     async processarFila() {
         const notificacoes = await (0, base_de_dados_1.query)(`SELECT n.*, u.telefone, u.metodo_contacto_preferido

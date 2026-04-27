@@ -11,6 +11,7 @@ import ordensRotas from './modulos/ordens/ordens.rotas';
 import agendamentoRotas from './modulos/agendamento/agendamento.rotas';
 import notificacoesRotas from './modulos/notificacoes/notificacoes.rotas';
 import pagamentosRotas from './modulos/pagamentos/pagamentos.rotas';
+import agenteRotas from './modulos/agente/agente.rotas';
 import { RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS, ALLOWED_ORIGINS } from './configuracao/ambiente';
 
 // 1. Criar a instância do Express
@@ -56,7 +57,7 @@ app.use('/api/ordens', ordensRotas);
 app.use('/api/agendamento', agendamentoRotas);
 app.use('/api/notificacoes', notificacoesRotas);
 app.use('/api/pagamentos', pagamentosRotas);
-
+app.use('/api/agente', agenteRotas);
 // 8. Rota de saúde
 app.get('/saude', (_req, res) => {
   res.json({ status: 'ativo', servico: 'backend-oficina-lpn', timestamp: new Date().toISOString() });
