@@ -10,10 +10,18 @@ interface OpcoesRequisicao extends RequestInit {
 async function fetchAPI<T = any>(endpoint: string, opcoes: OpcoesRequisicao = {}): Promise<T> {
   const { token, ...rest } = opcoes;
 
-  const headers: HeadersInit = {
+  // Usar Record<string, string> para permitir indexação com 'Authorization'
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...rest.headers,
   };
+
+  // Mesclar headers adicionais passados nas opções
+  if (rest.headers) {
+    const headersAdicionais = rest.headers as Record<string, string>;
+    for (const chave of Object.keys(headersAdicionais)) {
+      headers[chave] = headersAdicionais[chave];
+    }
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
